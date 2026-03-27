@@ -3,5 +3,5 @@ if(NOT CMAKE_BUILD_EARLY_EXPANSION)
 endif()
 
 idf_component_register(SRCS "${SOURCES}"
-                       PRIV_REQUIRES spi_flash
+                       PRIV_REQUIRES spi_flash esp_driver_i2c 
                        INCLUDE_DIRS ".")
