@@ -1,3 +1,5 @@
-idf_component_register(SRCS "hello_world_main.c"
+file(GLOB SOURCES *.c *.cpp)
+
+idf_component_register(SRCS "${SOURCES}"
                        PRIV_REQUIRES spi_flash
-                       INCLUDE_DIRS "")
+                       INCLUDE_DIRS ".")
