@@ -16,7 +16,7 @@ void app_main(void)
         .i2c_port = I2C_PORT,
         .scl_io_num = 22,
         .sda_io_num = 21,
-        .glitch_ignore_cnt = 7,
+        .glitch_ignore_cnt = 15,
         .flags.enable_internal_pullup = false,
     };
     i2c_master_bus_handle_t bus_handle;
@@ -39,26 +39,13 @@ void app_main(void)
     i2c_master_dev_handle_t lcd_handle;
     ESP_ERROR_CHECK(i2c_master_bus_add_device(bus_handle, &lcd_cfg, &lcd_handle));
 
-    printf("Running Backlight Test...\n");
-    for (int i = 0; i < 10; i++)
-    {
-        uint8_t bl_on = 0b00001000; // Backlight ON bit
-        i2c_master_transmit(lcd_handle, &bl_on, 1, 10);
-        vTaskDelay(pdMS_TO_TICKS(200));
-
-        uint8_t bl_off = 0b00000000; // Backlight OFF bit
-        i2c_master_transmit(lcd_handle, &bl_off, 1, 10);
-        vTaskDelay(pdMS_TO_TICKS(200));
-    }
-    printf("Backlight Test Done.\n");
-
+    vTaskDelay(1000 / portTICK_PERIOD_MS);
+    
     printf("Initializing display...\n");
 
     lcd_setup(lcd_handle);
 
     printf("Display done\n");
-
-    lcd_clear(lcd_handle);
 
     lcd_set_cg_address(lcd_handle, 0);
     for (int i = 0; i < 8 * 8; ++i)
@@ -87,7 +74,6 @@ void app_main(void)
             }
 
             lcd_set_cg_address(lcd_handle, 0);
-            vTaskDelay(100 / portTICK_PERIOD_MS);
             for (int x = 0; x < (3 - h); ++x)
                 lcd_write_data(lcd_handle, 0b00000000);
             lcd_write_data(lcd_handle, 0b00011111);
@@ -97,21 +83,39 @@ void app_main(void)
             lcd_write_data(lcd_handle, 0b00011111);
             for (int x = 0; x < h; ++x)
                 lcd_write_data(lcd_handle, 0b00000000);
-            vTaskDelay(100 / portTICK_PERIOD_MS);
+
+            vTaskDelay(10 / portTICK_PERIOD_MS);
         }
     }
 
     vTaskDelay(1000 / portTICK_PERIOD_MS);
 
-    ESP_ERROR_CHECK(i2c_master_bus_rm_device(lcd_handle));
+    lcd_clear(lcd_handle);
+    lcd_write_data(lcd_handle, 'D');
+    lcd_write_data(lcd_handle, 'O');
+    lcd_write_data(lcd_handle, 'N');
+    lcd_write_data(lcd_handle, 'E');
+    lcd_write_data(lcd_handle, '!');
 
-    ESP_ERROR_CHECK(i2c_del_master_bus(bus_handle));
+    vTaskDelay(1000 / portTICK_PERIOD_MS);
 
     for (int i = 10; i >= 0; i--)
     {
         printf("Restarting in %d seconds...\n", i);
+
+        uint8_t tens = (i == 0) ? 0 : (i / 10);
+        uint8_t ones = i % 10;
+
+        lcd_set_dd_address(lcd_handle, 6);
+        lcd_write_data(lcd_handle, 48 + tens);
+        lcd_write_data(lcd_handle, 48 + ones);
         vTaskDelay(1000 / portTICK_PERIOD_MS);
     }
+
+    ESP_ERROR_CHECK(i2c_master_bus_rm_device(lcd_handle));
+    ESP_ERROR_CHECK(i2c_del_master_bus(bus_handle));
+
+    vTaskDelay(1000 / portTICK_PERIOD_MS);
 
     printf("Restarting now.\n");
     fflush(stdout);

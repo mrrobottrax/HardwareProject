@@ -20,6 +20,7 @@ P7	            D7	            Data Bit 7
 // https://www.scribd.com/document/564283347/LCD-HD44780-instruction-set
 
 #define DELAY 50
+#define TIMEOUT 50
 
 static void lcd_send_4bit_control(i2c_master_dev_handle_t lcd_handle, uint8_t data)
 {
@@ -34,7 +35,7 @@ static void lcd_send_4bit_control(i2c_master_dev_handle_t lcd_handle, uint8_t da
     uint8_t b2 = b1 & 0b11111011;
 
     uint8_t d[] = {b2, b1, b2};
-    ESP_ERROR_CHECK(i2c_master_transmit(lcd_handle, d, 3, 10));
+    ESP_ERROR_CHECK(i2c_master_transmit(lcd_handle, d, 3, TIMEOUT));
     vTaskDelay(1);
 }
 
@@ -51,7 +52,7 @@ void lcd_send_8bit_control(i2c_master_dev_handle_t lcd_handle, uint8_t data)
     uint8_t b4 = b3 & 0b11111011;
 
     uint8_t d[] = {b2, b1, b2, b4, b3, b4};
-    ESP_ERROR_CHECK(i2c_master_transmit(lcd_handle, d, 6, 10));
+    while(i2c_master_transmit(lcd_handle, d, 6, TIMEOUT) == ESP_ERR_INVALID_RESPONSE);
     vTaskDelay(1);
 }
 
@@ -68,7 +69,7 @@ void lcd_send_8bit_data(i2c_master_dev_handle_t lcd_handle, uint8_t data)
     uint8_t b4 = b3 & 0b11111011;
 
     uint8_t d[] = {b2, b1, b2, b4, b3, b4};
-    ESP_ERROR_CHECK(i2c_master_transmit(lcd_handle, d, 6, 10));
+    while(i2c_master_transmit(lcd_handle, d, 6, TIMEOUT) == ESP_ERR_INVALID_RESPONSE);
     vTaskDelay(1);
 }
 
@@ -203,6 +204,5 @@ void lcd_set_dd_address(i2c_master_dev_handle_t lcd_handle, uint8_t address)
 void lcd_write_data(i2c_master_dev_handle_t lcd_handle, uint8_t byte)
 {
     lcd_send_8bit_data(lcd_handle, byte);
-    vTaskDelay(1);
-    // esp_rom_delay_us(DELAY);
+    esp_rom_delay_us(200);
 }

@@ -24,5 +24,3 @@ void lcd_set_cg_address(i2c_master_dev_handle_t lcd_handle, uint8_t address);
 void lcd_set_dd_address(i2c_master_dev_handle_t lcd_handle, uint8_t address);
 
 void lcd_write_data(i2c_master_dev_handle_t lcd_handle, uint8_t byte);
-
-void lcd_write_5x7_char(i2c_master_dev_handle_t lcd_handle, uint8_t* array);
