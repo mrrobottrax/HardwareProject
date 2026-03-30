@@ -20,7 +20,7 @@ P7	            D7	            Data Bit 7
 // https://www.scribd.com/document/564283347/LCD-HD44780-instruction-set
 
 #define DELAY 40
-#define TIMEOUT 50
+#define TIMEOUT 100
 
 typedef struct
 {
@@ -121,45 +121,46 @@ static esp_err_t lcd_initialize(lcd_handle_t lcd_handle)
     err = lcd_send_4bit_control(lcd_handle, 0b0011);
     if (err != ESP_OK)
         return err;
-    esp_rom_delay_us(50);
+    esp_rom_delay_us(DELAY);
 
-    // 3. Switch to 4-bit mode (send 0x02)
     err = lcd_send_4bit_control(lcd_handle, 0b0010);
-    if (err != ESP_OK)
-        return err;
-    esp_rom_delay_us(50);
-
-    // Function Set: 4-bit, 2 lines, 5x8 dots (0x28)
-    err = lcd_send_8bit_control(lcd_handle, 0x28);
-    esp_rom_delay_us(50);
-
-    // Display Control: Display OFF (0x08)
-    err = lcd_send_8bit_control(lcd_handle, 0x08);
-    esp_rom_delay_us(50);
-
-    // Clear Display (0x01)
-    err = lcd_send_8bit_control(lcd_handle, 0x01);
-    esp_rom_delay_us(2000); // CRITICAL: Clear Display takes > 1.52ms!
-
-    // Entry Mode Set: Increment cursor, no shift (0x06)
-    err = lcd_send_8bit_control(lcd_handle, 0x06);
-    esp_rom_delay_us(50);
-
-    // display enable
-    const uint8_t display_enable = 0b100;
-    const uint8_t cursor = 0b10;
-    const uint8_t blink = 0b1;
-    uint8_t cmd = 0b1000;
-
-    err = lcd_send_8bit_control(lcd_handle, cmd | display_enable | cursor);
     if (err != ESP_OK)
         return err;
     esp_rom_delay_us(DELAY);
 
-    // display is clear, but can't see cursor after this...
-    // other stuff doesn't work either
+    err = lcd_send_8bit_control(lcd_handle, 0x28);
+    if (err != ESP_OK)
+        return err;
+    esp_rom_delay_us(DELAY);
 
-    vTaskDelay(1000);
+    err = lcd_send_8bit_control(lcd_handle, 0x08);
+    if (err != ESP_OK)
+        return err;
+    esp_rom_delay_us(DELAY);
+
+    err = lcd_send_8bit_control(lcd_handle, 0x01);
+    if (err != ESP_OK)
+        return err;
+    esp_rom_delay_us(2000);
+
+    err = lcd_send_8bit_control(lcd_handle, 0x06);
+    if (err != ESP_OK)
+        return err;
+    esp_rom_delay_us(DELAY);
+
+    // display enable
+    enum
+    {
+        display_enable = 0b100,
+        cursor = 0b10,
+        blink = 0b1,
+    };
+    uint8_t cmd = 0b1000;
+
+    err = lcd_send_8bit_control(lcd_handle, cmd | display_enable);
+    if (err != ESP_OK)
+        return err;
+    esp_rom_delay_us(DELAY);
 
     return ESP_OK;
 }
@@ -167,6 +168,8 @@ static esp_err_t lcd_initialize(lcd_handle_t lcd_handle)
 static esp_err_t lcd_get_to_correct_state(lcd_handle_t lcd_handle)
 {
     lcd_handle->is_device_correct_state = false;
+
+    // ESP_ERROR_CHECK(i2c_master_bus_reset(lcd_handle->i2c_bus_handle));
 
     printf("Getting LCD into state\n");
 
@@ -257,7 +260,7 @@ static esp_err_t lcd_send_8bit_control_reliable(lcd_handle_t lcd_handle, uint8_t
     while (!lcd_handle->is_device_correct_state)
     {
         if (lcd_get_to_correct_state(lcd_handle) != ESP_OK)
-            printf("Failed to get LCD into correct state\n");
+            printf("Error getting into correct state\n");
     }
 
     while (true)
@@ -268,12 +271,10 @@ static esp_err_t lcd_send_8bit_control_reliable(lcd_handle_t lcd_handle, uint8_t
 
         printf("Error sending... resetting\n");
 
-        ESP_ERROR_CHECK(i2c_master_bus_reset(lcd_handle->i2c_bus_handle));
-        lcd_handle->is_device_correct_state = false;
-
         while (!lcd_handle->is_device_correct_state)
         {
-            lcd_get_to_correct_state(lcd_handle);
+            if (lcd_get_to_correct_state(lcd_handle) != ESP_OK)
+                printf("Error getting into correct state\n");
         }
     }
 
@@ -288,7 +289,7 @@ static esp_err_t lcd_send_8bit_data_reliable(lcd_handle_t lcd_handle, uint8_t da
     while (!lcd_handle->is_device_correct_state)
     {
         if (lcd_get_to_correct_state(lcd_handle) != ESP_OK)
-            printf("Failed to get LCD into correct state\n");
+            printf("Error getting into correct state\n");
     }
 
     while (true)
@@ -304,7 +305,8 @@ static esp_err_t lcd_send_8bit_data_reliable(lcd_handle_t lcd_handle, uint8_t da
 
         while (!lcd_handle->is_device_correct_state)
         {
-            lcd_get_to_correct_state(lcd_handle);
+            if (lcd_get_to_correct_state(lcd_handle) != ESP_OK)
+                printf("Error getting into correct state\n");
         }
     }
 
@@ -326,6 +328,9 @@ esp_err_t lcd_create(const lcd_config_t *config, lcd_handle_t *lcd_handle)
     (*lcd_handle)->i2c_address = config->address;
     (*lcd_handle)->i2c_bus_handle = config->bus_handle;
     (*lcd_handle)->i2c_dev_handle = 0;
+
+    for (int i = 0; i < sizeof((*lcd_handle)->state.ddram); ++i)
+        (*lcd_handle)->state.ddram[i] = ' ';
 
     i2c_device_config_t i2c_config = {
         .dev_addr_length = I2C_ADDR_BIT_LEN_7,
@@ -371,7 +376,7 @@ esp_err_t lcd_clear(lcd_handle_t lcd_handle)
     lcd_handle->state.shift = 0;
 
     for (int i = 0; i < sizeof(lcd_handle->state.ddram); ++i)
-        lcd_handle->state.ddram[i] = 0;
+        lcd_handle->state.ddram[i] = ' ';
 
     vTaskDelay(1);
 
@@ -434,67 +439,75 @@ esp_err_t lcd_write_data(lcd_handle_t lcd_handle, uint8_t byte)
     return ESP_OK;
 }
 
-// void lcd_cursor_home(i2c_master_dev_handle_t lcd_handle)
-// {
-//     lcd_send_8bit_control(lcd_handle, 0b00000010);
-//     vTaskDelay(1);
-// }
+esp_err_t lcd_shift_cursor_r(lcd_handle_t lcd_handle)
+{
+    esp_err_t err = lcd_send_8bit_data_reliable(lcd_handle, 0b00010100);
+    if (err != ESP_OK)
+        return err;
 
-// void lcd_entry_mode(i2c_master_dev_handle_t lcd_handle, bool data_increment, bool shift_display)
-// {
-//     uint8_t b = 0b00000100;
-//     if (data_increment)
-//         b |= 0b00000010;
+    ++lcd_handle->state.mem_address;
+    if (lcd_handle->state.is_address_cg)
+    {
+        lcd_handle->state.mem_address %= sizeof(lcd_handle->state.cgram);
+    }
+    else
+    {
+        lcd_handle->state.mem_address %= sizeof(lcd_handle->state.ddram);
+    }
 
-//     if (shift_display)
-//         b |= 0b00000001;
+    esp_rom_delay_us(DELAY);
 
-//     lcd_send_8bit_control(lcd_handle, b);
-//     vTaskDelay(1);
-//     // esp_rom_delay_us(DELAY);
-// }
+    return ESP_OK;
+}
 
-// void lcd_display_enable(i2c_master_dev_handle_t lcd_handle, bool display_on, bool display_cursor, bool character_blink)
-// {
-//     uint8_t b = 0b00001000;
-//     if (display_on)
-//         b |= 0b00000100;
+esp_err_t lcd_shift_cursor_l(lcd_handle_t lcd_handle)
+{
+    esp_err_t err = lcd_send_8bit_data_reliable(lcd_handle, 0b00010000);
+    if (err != ESP_OK)
+        return err;
 
-//     if (display_cursor)
-//         b |= 0b00000010;
+    --lcd_handle->state.mem_address;
+    if (lcd_handle->state.is_address_cg)
+    {
+        if (lcd_handle->state.mem_address >= sizeof(lcd_handle->state.cgram))
+            lcd_handle->state.mem_address = 0;
+    }
+    else
+    {
+        if (lcd_handle->state.mem_address >= sizeof(lcd_handle->state.ddram))
+            lcd_handle->state.mem_address = 0;
+    }
 
-//     if (character_blink)
-//         b |= 0b00000001;
+    esp_rom_delay_us(DELAY);
 
-//     lcd_send_8bit_control(lcd_handle, b);
-//     vTaskDelay(1);
-//     // esp_rom_delay_us(DELAY);
-// }
+    return ESP_OK;
+}
 
-// void lcd_shift_cursor_r(i2c_master_dev_handle_t lcd_handle)
-// {
-//     lcd_send_8bit_control(lcd_handle, 0b00010100);
-//     vTaskDelay(1);
-//     // esp_rom_delay_us(DELAY);
-// }
+esp_err_t lcd_shift_display_r(lcd_handle_t lcd_handle)
+{
+    esp_err_t err = lcd_send_8bit_data_reliable(lcd_handle, 0b00011100);
+    if (err != ESP_OK)
+        return err;
 
-// void lcd_shift_cursor_l(i2c_master_dev_handle_t lcd_handle)
-// {
-//     lcd_send_8bit_control(lcd_handle, 0b00010000);
-//     vTaskDelay(1);
-//     // esp_rom_delay_us(DELAY);
-// }
+    ++lcd_handle->state.shift;
+    lcd_handle->state.shift %= 40;
 
-// void lcd_shift_display_r(i2c_master_dev_handle_t lcd_handle)
-// {
-//     lcd_send_8bit_control(lcd_handle, 0b00011100);
-//     vTaskDelay(1);
-//     // esp_rom_delay_us(DELAY);
-// }
+    esp_rom_delay_us(DELAY);
 
-// void lcd_shift_display_l(i2c_master_dev_handle_t lcd_handle)
-// {
-//     lcd_send_8bit_control(lcd_handle, 0b00011000);
-//     vTaskDelay(1);
-//     // esp_rom_delay_us(DELAY);
-// }
+    return ESP_OK;
+}
+
+esp_err_t lcd_shift_display_l(lcd_handle_t lcd_handle)
+{
+    esp_err_t err = lcd_send_8bit_data_reliable(lcd_handle, 0b00011000);
+    if (err != ESP_OK)
+        return err;
+
+    --lcd_handle->state.shift;
+    if (lcd_handle->state.shift >= 40)
+        lcd_handle->state.shift = 0;
+
+    esp_rom_delay_us(DELAY);
+
+    return ESP_OK;
+}

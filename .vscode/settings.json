@@ -3,8 +3,8 @@
   "idf.openOcdConfigs": [
     "board/esp32-wrover-kit-3.3v.cfg"
   ],
-  "idf.portWin": "COM3",
-  "idf.currentSetup": "C:\\esp\\v6.0\\esp-idf",
+  "idf.portWin": "COM4",
+  "idf.currentSetup": "D:\\esp\\v6.0\\esp-idf",
   "idf.customExtraVars": {
     "IDF_TARGET": "esp32"
   },
@@ -12,8 +12,8 @@
   "clangd.arguments": [
     "--background-index",
     "--query-driver=**",
-    "--compile-commands-dir=c:\\REAL_DOCS\\hello_world\\build"
+    "--compile-commands-dir=D:\\REAL_DOCS\\Code\\HardwareProject\\build"
   ],
   "idf.flashType": "UART",
-  "idf.monitorPort": "COM3"
+  "idf.monitorPort": "COM4"
 }

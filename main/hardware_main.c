@@ -22,8 +22,6 @@ void app_main(void)
     i2c_master_bus_handle_t bus_handle;
     ESP_ERROR_CHECK(i2c_new_master_bus(&i2c_mst_config, &bus_handle));
 
-    vTaskDelay(1000 / portTICK_PERIOD_MS);
-
     for (int i = 0; i <= 0x7F; ++i)
     {
         if (i2c_master_probe(bus_handle, i, -1) == ESP_OK)
@@ -32,9 +30,7 @@ void app_main(void)
         }
     }
 
-    vTaskDelay(1000 / portTICK_PERIOD_MS);
-    ESP_ERROR_CHECK(i2c_master_bus_reset(bus_handle));
-    vTaskDelay(1000 / portTICK_PERIOD_MS);
+    vTaskDelay(5000 / portTICK_PERIOD_MS);
 
     lcd_handle_t lcd_handle;
     lcd_config_t lcd_config = {
@@ -45,12 +41,34 @@ void app_main(void)
 
     ESP_ERROR_CHECK(lcd_clear(lcd_handle));
 
-    vTaskDelay(1000 / portTICK_PERIOD_MS);
-    
-    //ESP_ERROR_CHECK(lcd_set_dd_address(lcd_handle, 0));
-    //ESP_ERROR_CHECK(lcd_write_data(lcd_handle, 'A'));
+    ESP_ERROR_CHECK(lcd_set_dd_address(lcd_handle, 0));
+    ESP_ERROR_CHECK(lcd_write_data(lcd_handle, 'A'));
+    ESP_ERROR_CHECK(lcd_write_data(lcd_handle, 0));
+    ESP_ERROR_CHECK(lcd_write_data(lcd_handle, 0));
+    ESP_ERROR_CHECK(lcd_write_data(lcd_handle, 0));
 
-    vTaskDelay(1000 / portTICK_PERIOD_MS);
+    for (int i = 0; i < 100; ++i)
+        for (int a = 0; a < 6; ++a)
+        {
+            int h = a;
+            if (a > 3)
+            {
+                h = 6 - a;
+            }
+
+            ESP_ERROR_CHECK(lcd_set_cg_address(lcd_handle, 0));
+            for (int z = 0; z < 3 - h; ++z)
+                ESP_ERROR_CHECK(lcd_write_data(lcd_handle, 0));
+            ESP_ERROR_CHECK(lcd_write_data(lcd_handle, 0b11111));
+            ESP_ERROR_CHECK(lcd_write_data(lcd_handle, 0b10001));
+            ESP_ERROR_CHECK(lcd_write_data(lcd_handle, 0b10001));
+            ESP_ERROR_CHECK(lcd_write_data(lcd_handle, 0b10001));
+            ESP_ERROR_CHECK(lcd_write_data(lcd_handle, 0b11111));
+            for (int z = 0; z < h; ++z)
+                ESP_ERROR_CHECK(lcd_write_data(lcd_handle, 0));
+
+            vTaskDelay(10);
+        }
 
     ESP_ERROR_CHECK(lcd_delete(lcd_handle));
 
