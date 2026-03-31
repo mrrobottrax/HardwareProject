@@ -19,8 +19,8 @@ P7	            D7	            Data Bit 7
 
 // https://www.scribd.com/document/564283347/LCD-HD44780-instruction-set
 
-#define DELAY 40
-#define TIMEOUT 100
+#define DELAY 60
+#define TIMEOUT 200
 
 typedef struct
 {

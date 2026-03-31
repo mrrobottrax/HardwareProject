@@ -1,16 +1,18 @@
 #include <stdio.h>
 #include <inttypes.h>
-#include "sdkconfig.h"
-#include "freertos/FreeRTOS.h"
-#include "driver/i2c_master.h"
+#include <sdkconfig.h>
+#include <freertos/FreeRTOS.h>
+#include <driver/i2c_master.h>
 
-#include "lcd.h"
+#include "display.h"
+#include "game.h"
 
 #define I2C_PORT 0x00
-#define LCD_I2C_ID 0x27
 
 void app_main(void)
 {
+    printf("Starting I2C on port %i\n", I2C_PORT);
+
     i2c_master_bus_config_t i2c_mst_config = {
         .clk_source = I2C_CLK_SRC_DEFAULT,
         .i2c_port = I2C_PORT,
@@ -30,125 +32,18 @@ void app_main(void)
         }
     }
 
-    vTaskDelay(5000 / portTICK_PERIOD_MS);
+    printf("Starting Game...\n");
 
-    lcd_handle_t lcd_handle;
-    lcd_config_t lcd_config = {
-        .address = LCD_I2C_ID,
-        .bus_handle = bus_handle,
+    display_init();
+
+    static display_task_params_t display_params = {
+        .i2c_port = I2C_PORT,
     };
-    ESP_ERROR_CHECK(lcd_create(&lcd_config, &lcd_handle));
+    TaskHandle_t display_task_handle;
+    if (xTaskCreatePinnedToCore(display_task, "Display Task", 4096, &display_params, 1, &display_task_handle, 0) != pdPASS)
+        ESP_ERROR_CHECK(false);
 
-    ESP_ERROR_CHECK(lcd_clear(lcd_handle));
-
-    ESP_ERROR_CHECK(lcd_set_dd_address(lcd_handle, 0));
-    ESP_ERROR_CHECK(lcd_write_data(lcd_handle, 'A'));
-    ESP_ERROR_CHECK(lcd_write_data(lcd_handle, 0));
-    ESP_ERROR_CHECK(lcd_write_data(lcd_handle, 0));
-    ESP_ERROR_CHECK(lcd_write_data(lcd_handle, 0));
-
-    for (int i = 0; i < 100; ++i)
-        for (int a = 0; a < 6; ++a)
-        {
-            int h = a;
-            if (a > 3)
-            {
-                h = 6 - a;
-            }
-
-            ESP_ERROR_CHECK(lcd_set_cg_address(lcd_handle, 0));
-            for (int z = 0; z < 3 - h; ++z)
-                ESP_ERROR_CHECK(lcd_write_data(lcd_handle, 0));
-            ESP_ERROR_CHECK(lcd_write_data(lcd_handle, 0b11111));
-            ESP_ERROR_CHECK(lcd_write_data(lcd_handle, 0b10001));
-            ESP_ERROR_CHECK(lcd_write_data(lcd_handle, 0b10001));
-            ESP_ERROR_CHECK(lcd_write_data(lcd_handle, 0b10001));
-            ESP_ERROR_CHECK(lcd_write_data(lcd_handle, 0b11111));
-            for (int z = 0; z < h; ++z)
-                ESP_ERROR_CHECK(lcd_write_data(lcd_handle, 0));
-
-            vTaskDelay(10);
-        }
-
-    ESP_ERROR_CHECK(lcd_delete(lcd_handle));
-
-    ESP_ERROR_CHECK(i2c_master_bus_wait_all_done(bus_handle, 100));
-
-    // for (int i = 0; i < 3; ++i)
-    // {
-    //     printf("Initializing display...\n");
-    //     lcd_setup(lcd_handle);
-    //     vTaskDelay(200 / portTICK_PERIOD_MS);
-    // }
-
-    // lcd_set_cg_address(lcd_handle, 0);
-    // for (int i = 0; i < 8 * 8; ++i)
-    //     lcd_write_data(lcd_handle, 0);
-
-    // printf("CGRAM Clear\n");
-
-    // lcd_set_dd_address(lcd_handle, 0);
-    // lcd_write_data(lcd_handle, 0);
-    // lcd_write_data(lcd_handle, 0);
-    // lcd_write_data(lcd_handle, 0);
-
-    // printf("Draw box\n");
-
-    // vTaskDelay(1000 / portTICK_PERIOD_MS);
-
-    // for (int i = 0; i < 20; ++i)
-    // {
-    //     printf("Loop %i\n", i);
-    //     for (int j = 0; j < 6; ++j)
-    //     {
-    //         int h = j;
-    //         if (h >= 4)
-    //         {
-    //             h = 6 - h;
-    //         }
-
-    //         lcd_set_cg_address(lcd_handle, 0);
-    //         for (int x = 0; x < (3 - h); ++x)
-    //             lcd_write_data(lcd_handle, 0b00000000);
-    //         lcd_write_data(lcd_handle, 0b00011111);
-    //         lcd_write_data(lcd_handle, 0b00010001);
-    //         lcd_write_data(lcd_handle, 0b00010001);
-    //         lcd_write_data(lcd_handle, 0b00010001);
-    //         lcd_write_data(lcd_handle, 0b00011111);
-    //         for (int x = 0; x < h; ++x)
-    //             lcd_write_data(lcd_handle, 0b00000000);
-
-    //         vTaskDelay(1);
-    //     }
-    // }
-
-    // lcd_clear(lcd_handle);
-    // lcd_write_data(lcd_handle, 'D');
-    // lcd_write_data(lcd_handle, 'O');
-    // lcd_write_data(lcd_handle, 'N');
-    // lcd_write_data(lcd_handle, 'E');
-    // lcd_write_data(lcd_handle, '!');
-
-    // for (int i = 3; i >= 0; i--)
-    // {
-    //     printf("Restarting in %d seconds...\n", i);
-
-    //     uint8_t tens = (i == 0) ? 0 : (i / 10);
-    //     uint8_t ones = i % 10;
-
-    //     lcd_set_dd_address(lcd_handle, 6);
-    //     lcd_write_data(lcd_handle, 48 + tens);
-    //     lcd_write_data(lcd_handle, 48 + ones);
-    //     vTaskDelay(1000 / portTICK_PERIOD_MS);
-    // }
-
-    // ESP_ERROR_CHECK(i2c_master_bus_rm_device(lcd_handle));
-
-    ESP_ERROR_CHECK(i2c_del_master_bus(bus_handle));
-
-    vTaskDelay(1000 / portTICK_PERIOD_MS);
-
-    printf("Restarting now.\n");
-    fflush(stdout);
-    esp_restart();
+    TaskHandle_t game_logic_task_handle;
+    if (xTaskCreatePinnedToCore(game_logic_task, "Game Logic", 4096, NULL, 2, &game_logic_task_handle, 1) != pdPASS)
+        ESP_ERROR_CHECK(false);
 }
