@@ -1,11 +1,11 @@
 #include <stdio.h>
 #include <inttypes.h>
-#include <sdkconfig.h>
 #include <freertos/FreeRTOS.h>
 #include <driver/i2c_master.h>
 
 #include "display.h"
 #include "game.h"
+#include "input.h"
 
 #define I2C_PORT 0x00
 
@@ -34,6 +34,7 @@ void app_main(void)
 
     printf("Starting Game...\n");
 
+    input_init();
     display_init();
 
     static display_task_params_t display_params = {
@@ -41,9 +42,9 @@ void app_main(void)
     };
     TaskHandle_t display_task_handle;
     if (xTaskCreatePinnedToCore(display_task, "Display Task", 4096, &display_params, 1, &display_task_handle, 0) != pdPASS)
-        ESP_ERROR_CHECK(false);
+        ESP_ERROR_CHECK(ESP_FAIL);
 
     TaskHandle_t game_logic_task_handle;
     if (xTaskCreatePinnedToCore(game_logic_task, "Game Logic", 4096, NULL, 2, &game_logic_task_handle, 1) != pdPASS)
-        ESP_ERROR_CHECK(false);
+        ESP_ERROR_CHECK(ESP_FAIL);
 }
