@@ -271,11 +271,11 @@ static esp_err_t lcd_send_8bit_control_reliable(lcd_handle_t lcd_handle, uint8_t
 
         printf("Error sending... resetting\n");
 
-        while (!lcd_handle->is_device_correct_state)
+        do
         {
             if (lcd_get_to_correct_state(lcd_handle) != ESP_OK)
                 printf("Error getting into correct state\n");
-        }
+        } while (!lcd_handle->is_device_correct_state);
     }
 
     return ESP_OK;
@@ -300,14 +300,11 @@ static esp_err_t lcd_send_8bit_data_reliable(lcd_handle_t lcd_handle, uint8_t da
 
         printf("Error sending... resetting\n");
 
-        ESP_ERROR_CHECK(i2c_master_bus_reset(lcd_handle->i2c_bus_handle));
-        lcd_handle->is_device_correct_state = false;
-
-        while (!lcd_handle->is_device_correct_state)
+        do
         {
             if (lcd_get_to_correct_state(lcd_handle) != ESP_OK)
                 printf("Error getting into correct state\n");
-        }
+        } while (!lcd_handle->is_device_correct_state);
     }
 
     return ESP_OK;
