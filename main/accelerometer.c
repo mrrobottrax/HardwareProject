@@ -1,5 +1,6 @@
 #include "accelerometer.h"
 
+#include <math.h>
 #include <freertos/FreeRTOS.h>
 #include <driver/i2c_master.h>
 
@@ -65,9 +66,6 @@ esp_err_t accel_read(int16_t *accel_x, int16_t *accel_y, int16_t *accel_z)
 
 float accel_get_movement(int16_t x, int16_t y, int16_t z)
 {
-    int16_t x = 0, y = 0, z = 0;
-    accel_read(&x, &y, &z);
-
     float fx = (float)x / (1 << 14);
     float fy = (float)y / (1 << 14);
     float fz = (float)z / (1 << 14) - 0.2f; // calibration
