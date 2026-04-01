@@ -4,10 +4,10 @@
 #include <driver/i2c_master.h>
 
 #include "display.h"
-#include "game.h"
 #include "input.h"
 #include "audio.h"
 #include "accelerometer.h"
+#include "space_game.h"
 
 #define I2C_PORT 0x00
 
