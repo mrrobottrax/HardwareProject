@@ -180,7 +180,7 @@ static esp_err_t lcd_get_to_correct_state(lcd_handle_t lcd_handle)
 
     printf("LCD Initialized\n");
 
-    vTaskDelay(20);
+    vTaskDelay(1);
 
     // copy ddram
     err = lcd_send_8bit_control(lcd_handle, 0b10000000);
@@ -442,7 +442,7 @@ esp_err_t lcd_write_data(lcd_handle_t lcd_handle, uint8_t byte)
 
 esp_err_t lcd_shift_cursor_r(lcd_handle_t lcd_handle)
 {
-    esp_err_t err = lcd_send_8bit_data_reliable(lcd_handle, 0b00010100);
+    esp_err_t err = lcd_send_8bit_control_reliable(lcd_handle, 0b00010100);
     if (err != ESP_OK)
         return err;
 
@@ -463,7 +463,7 @@ esp_err_t lcd_shift_cursor_r(lcd_handle_t lcd_handle)
 
 esp_err_t lcd_shift_cursor_l(lcd_handle_t lcd_handle)
 {
-    esp_err_t err = lcd_send_8bit_data_reliable(lcd_handle, 0b00010000);
+    esp_err_t err = lcd_send_8bit_control_reliable(lcd_handle, 0b00010000);
     if (err != ESP_OK)
         return err;
 
@@ -486,7 +486,7 @@ esp_err_t lcd_shift_cursor_l(lcd_handle_t lcd_handle)
 
 esp_err_t lcd_shift_display_r(lcd_handle_t lcd_handle)
 {
-    esp_err_t err = lcd_send_8bit_data_reliable(lcd_handle, 0b00011100);
+    esp_err_t err = lcd_send_8bit_control_reliable(lcd_handle, 0b00011100);
     if (err != ESP_OK)
         return err;
 
@@ -500,7 +500,7 @@ esp_err_t lcd_shift_display_r(lcd_handle_t lcd_handle)
 
 esp_err_t lcd_shift_display_l(lcd_handle_t lcd_handle)
 {
-    esp_err_t err = lcd_send_8bit_data_reliable(lcd_handle, 0b00011000);
+    esp_err_t err = lcd_send_8bit_control_reliable(lcd_handle, 0b00011000);
     if (err != ESP_OK)
         return err;
 

@@ -45,6 +45,6 @@ void app_main(void)
         ESP_ERROR_CHECK(ESP_FAIL);
 
     TaskHandle_t game_logic_task_handle;
-    if (xTaskCreatePinnedToCore(game_logic_task, "Game Logic", 4096, NULL, 2, &game_logic_task_handle, 1) != pdPASS)
+    if (xTaskCreatePinnedToCore(space_game_task, "Game Logic", 4096, NULL, 2, &game_logic_task_handle, 1) != pdPASS)
         ESP_ERROR_CHECK(ESP_FAIL);
 }
