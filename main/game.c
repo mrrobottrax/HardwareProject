@@ -89,11 +89,14 @@ void space_game_task(void *pvParams)
         memcpy(prev_row1, row1, 16);
 
         // scroll rows
-        for (int i = 0; i < 15; ++i)
+        for (int i = 0; i < 14; ++i)
             row0[i] = row0[i + 1];
 
-        for (int i = 0; i < 15; ++i)
+        for (int i = 0; i < 14; ++i)
             row1[i] = row1[i + 1];
+
+        row0[15] = '2';
+        row1[15] = '8';
 
         // add new asteroids
         bool spawned = false;
@@ -103,20 +106,20 @@ void space_game_task(void *pvParams)
             if (up)
             {
                 // check if clear
-                if (row1[14] == ' ')
+                if (row1[13] == ' ')
                 {
-                    row0[15] = SPRITE_ASTEROID;
-                    row1[15] = ' ';
+                    row0[14] = SPRITE_ASTEROID;
+                    row1[14] = ' ';
                     spawned = true;
                 }
             }
             else
             {
                 // check if clear
-                if (row0[14] == ' ')
+                if (row0[13] == ' ')
                 {
-                    row0[15] = ' ';
-                    row1[15] = SPRITE_ASTEROID;
+                    row0[14] = ' ';
+                    row1[14] = SPRITE_ASTEROID;
                     spawned = true;
                 }
             }
@@ -124,8 +127,8 @@ void space_game_task(void *pvParams)
 
         if (!spawned)
         {
-            row0[15] = ' ';
-            row1[15] = ' ';
+            row0[14] = ' ';
+            row1[14] = ' ';
         }
 
         // player move
@@ -169,6 +172,28 @@ void space_game_task(void *pvParams)
             }
         }
 
+        // draw player
+        if (player_up)
+        {
+            display_set_dd_address(1);
+            display_write_data(SPRITE_PLAYER);
+            if (!was_player_up)
+            {
+                display_set_dd_address(65);
+                display_write_data(row1[1]);
+            }
+        }
+        else
+        {
+            display_set_dd_address(65);
+            display_write_data(SPRITE_PLAYER);
+            if (was_player_up)
+            {
+                display_set_dd_address(1);
+                display_write_data(row0[1]);
+            }
+        }
+
         // check lose
         if ((player_up && row0[1] == SPRITE_ASTEROID) ||
             (!player_up && row1[1] == SPRITE_ASTEROID))
@@ -188,7 +213,7 @@ void space_game_task(void *pvParams)
             display_shift_cursor_l();
             display_write_data(SPRITE_EXPLOSION1);
 
-            vTaskDelay(100 / portTICK_PERIOD_MS);
+            vTaskDelay(200 / portTICK_PERIOD_MS);
 
             display_shift_cursor_l();
             display_write_data(' ');
@@ -210,28 +235,6 @@ void space_game_task(void *pvParams)
                 ESP_ERROR_CHECK(ESP_FAIL);
 
             vTaskDelete(NULL);
-        }
-
-        // draw player
-        if (player_up)
-        {
-            display_set_dd_address(1);
-            display_write_data(SPRITE_PLAYER);
-            if (!was_player_up)
-            {
-                display_set_dd_address(65);
-                display_write_data(row1[1]);
-            }
-        }
-        else
-        {
-            display_set_dd_address(65);
-            display_write_data(SPRITE_PLAYER);
-            if (was_player_up)
-            {
-                display_set_dd_address(1);
-                display_write_data(row0[1]);
-            }
         }
 
         vTaskDelayUntil(&last_wake_time, tick_rate);
