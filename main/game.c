@@ -73,7 +73,7 @@ void space_game_task(void *pvParams)
     memset(row0, ' ', 16);
     memset(row1, ' ', 16);
 
-    const TickType_t tick_rate = pdMS_TO_TICKS(400);
+    const TickType_t tick_rate = pdMS_TO_TICKS(300);
     TickType_t last_wake_time = xTaskGetTickCount();
 
     while (1)
