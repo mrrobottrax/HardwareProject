@@ -178,6 +178,10 @@ static esp_err_t lcd_get_to_correct_state(lcd_handle_t lcd_handle)
     if (err != ESP_OK)
         return err;
 
+    printf("LCD Initialized\n");
+
+    vTaskDelay(20);
+
     // copy ddram
     err = lcd_send_8bit_control(lcd_handle, 0b10000000);
     if (err != ESP_OK)
