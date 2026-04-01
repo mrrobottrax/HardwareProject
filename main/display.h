@@ -48,11 +48,11 @@ typedef struct
 
 esp_err_t display_cmd(const lcd_cmd_t *cmd);
 
-esp_err_t display_clear();
-esp_err_t display_set_dd_address(uint8_t address);
-esp_err_t display_set_cg_address(uint8_t address);
-esp_err_t display_write_data(uint8_t byte);
-esp_err_t display_shift_cursor_r();
-esp_err_t display_shift_cursor_l();
-esp_err_t display_shift_display_r();
-esp_err_t display_shift_display_l();
+void display_clear();
+void display_set_dd_address(uint8_t address);
+void display_set_cg_address(uint8_t address);
+void display_write_data(uint8_t byte);
+void display_shift_cursor_r();
+void display_shift_cursor_l();
+void display_shift_display_r();
+void display_shift_display_l();

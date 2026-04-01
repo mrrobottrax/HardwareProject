@@ -94,7 +94,10 @@ esp_err_t display_cmd(const lcd_cmd_t *cmd)
             return ESP_ERR_INVALID_ARG;
         break;
     case LCD_CMD_SET_DD_ADDRESS:
-        if (cmd->set_dd_address.address >= 80)
+        if (cmd->set_dd_address.address >= 104)
+            return ESP_ERR_INVALID_ARG;
+
+        if (cmd->set_dd_address.address >= 40 && cmd->set_dd_address.address < 64)
             return ESP_ERR_INVALID_ARG;
         break;
 
@@ -112,72 +115,72 @@ esp_err_t display_cmd(const lcd_cmd_t *cmd)
     return ESP_OK;
 }
 
-esp_err_t display_clear()
+void display_clear()
 {
     lcd_cmd_t cmd = {
         .type = LCD_CMD_CLEAR,
     };
-    return display_cmd(&cmd);
+    ESP_ERROR_CHECK(display_cmd(&cmd));
 }
 
-esp_err_t display_set_dd_address(uint8_t address)
+void display_set_dd_address(uint8_t address)
 {
     lcd_cmd_t cmd = {
         .type = LCD_CMD_SET_DD_ADDRESS,
         .set_dd_address = {
             .address = address,
         }};
-    return display_cmd(&cmd);
+    ESP_ERROR_CHECK(display_cmd(&cmd));
 }
 
-esp_err_t display_set_cg_address(uint8_t address)
+void display_set_cg_address(uint8_t address)
 {
     lcd_cmd_t cmd = {
         .type = LCD_CMD_SET_CG_ADDRESS,
         .set_cg_address = {
             .address = address,
         }};
-    return display_cmd(&cmd);
+    ESP_ERROR_CHECK(display_cmd(&cmd));
 }
 
-esp_err_t display_write_data(uint8_t data)
+void display_write_data(uint8_t data)
 {
     lcd_cmd_t cmd = {
         .type = LCD_CMD_WRITE,
         .write = {
             .data = data,
         }};
-    return display_cmd(&cmd);
+    ESP_ERROR_CHECK(display_cmd(&cmd));
 }
 
-esp_err_t display_shift_cursor_r()
+void display_shift_cursor_r()
 {
     lcd_cmd_t cmd = {
         .type = LCD_CMD_CURSOR_R,
     };
-    return display_cmd(&cmd);
+    ESP_ERROR_CHECK(display_cmd(&cmd));
 }
 
-esp_err_t display_shift_cursor_l()
+void display_shift_cursor_l()
 {
     lcd_cmd_t cmd = {
         .type = LCD_CMD_CURSOR_L,
     };
-    return display_cmd(&cmd);
+    ESP_ERROR_CHECK(display_cmd(&cmd));
 }
 
-esp_err_t display_shift_display_r()
+void display_shift_display_r()
 {
     lcd_cmd_t cmd = {
         .type = LCD_CMD_DISPLAY_R,
     };
-    return display_cmd(&cmd);
+    ESP_ERROR_CHECK(display_cmd(&cmd));
 }
 
-esp_err_t display_shift_display_l()
+void display_shift_display_l()
 {
     lcd_cmd_t cmd = {
         .type = LCD_CMD_DISPLAY_L,
     };
-    return display_cmd(&cmd);
+    ESP_ERROR_CHECK(display_cmd(&cmd));
 }

@@ -19,7 +19,7 @@ P7	            D7	            Data Bit 7
 
 // https://www.scribd.com/document/564283347/LCD-HD44780-instruction-set
 
-#define DELAY 60
+#define DELAY 50
 #define TIMEOUT 200
 
 typedef struct
@@ -28,7 +28,8 @@ typedef struct
     uint8_t mem_address;
     uint8_t shift;
 
-    uint8_t ddram[80];
+    uint8_t ddram_0[40];
+    uint8_t ddram_1[40];
     uint8_t cgram[64];
 } lcd_state_t;
 
@@ -180,17 +181,28 @@ static esp_err_t lcd_get_to_correct_state(lcd_handle_t lcd_handle)
 
     printf("LCD Initialized\n");
 
-    vTaskDelay(1);
-
     // copy ddram
     err = lcd_send_8bit_control(lcd_handle, 0b10000000);
     if (err != ESP_OK)
         return err;
     esp_rom_delay_us(DELAY);
 
-    for (int i = 0; i < sizeof(lcd_handle->state.ddram); ++i)
+    for (int i = 0; i < 40; ++i)
     {
-        err = lcd_send_8bit_data(lcd_handle, lcd_handle->state.ddram[i]);
+        err = lcd_send_8bit_data(lcd_handle, lcd_handle->state.ddram_0[i]);
+        if (err != ESP_OK)
+            return err;
+        esp_rom_delay_us(DELAY);
+    }
+
+    err = lcd_send_8bit_control(lcd_handle, 0b10000000 | 64);
+    if (err != ESP_OK)
+        return err;
+    esp_rom_delay_us(DELAY);
+
+    for (int i = 0; i < 40; ++i)
+    {
+        err = lcd_send_8bit_data(lcd_handle, lcd_handle->state.ddram_1[i]);
         if (err != ESP_OK)
             return err;
         esp_rom_delay_us(DELAY);
@@ -330,8 +342,11 @@ esp_err_t lcd_create(const lcd_config_t *config, lcd_handle_t *lcd_handle)
     (*lcd_handle)->i2c_bus_handle = config->bus_handle;
     (*lcd_handle)->i2c_dev_handle = 0;
 
-    for (int i = 0; i < sizeof((*lcd_handle)->state.ddram); ++i)
-        (*lcd_handle)->state.ddram[i] = ' ';
+    for (int i = 0; i < sizeof((*lcd_handle)->state.ddram_0); ++i)
+        (*lcd_handle)->state.ddram_0[i] = ' ';
+
+    for (int i = 0; i < sizeof((*lcd_handle)->state.ddram_1); ++i)
+        (*lcd_handle)->state.ddram_1[i] = ' ';
 
     i2c_device_config_t i2c_config = {
         .dev_addr_length = I2C_ADDR_BIT_LEN_7,
@@ -376,8 +391,11 @@ esp_err_t lcd_clear(lcd_handle_t lcd_handle)
     lcd_handle->state.mem_address = 0;
     lcd_handle->state.shift = 0;
 
-    for (int i = 0; i < sizeof(lcd_handle->state.ddram); ++i)
-        lcd_handle->state.ddram[i] = ' ';
+    for (int i = 0; i < sizeof(lcd_handle->state.ddram_0); ++i)
+        lcd_handle->state.ddram_0[i] = ' ';
+
+    for (int i = 0; i < sizeof(lcd_handle->state.ddram_1); ++i)
+        lcd_handle->state.ddram_1[i] = ' ';
 
     vTaskDelay(1);
 
@@ -386,7 +404,10 @@ esp_err_t lcd_clear(lcd_handle_t lcd_handle)
 
 esp_err_t lcd_set_dd_address(lcd_handle_t lcd_handle, uint8_t address)
 {
-    if (address > 0b01111111)
+    if (address > 104)
+        return ESP_ERR_INVALID_ARG;
+
+    if (address >= 40 && address < 64)
         return ESP_ERR_INVALID_ARG;
 
     esp_err_t err = lcd_send_8bit_control_reliable(lcd_handle, 0b10000000 | address);
@@ -430,9 +451,15 @@ esp_err_t lcd_write_data(lcd_handle_t lcd_handle, uint8_t byte)
     }
     else
     {
-        lcd_handle->state.ddram[lcd_handle->state.mem_address] = byte;
+        if (lcd_handle->state.mem_address < 40)
+            lcd_handle->state.ddram_0[lcd_handle->state.mem_address] = byte;
+        else if (lcd_handle->state.mem_address >= 64 && lcd_handle->state.mem_address < 104)
+            lcd_handle->state.ddram_1[lcd_handle->state.mem_address - 64] = byte;
+
         ++lcd_handle->state.mem_address;
-        lcd_handle->state.mem_address %= sizeof(lcd_handle->state.ddram);
+        lcd_handle->state.mem_address %= 104;
+        if (lcd_handle->state.mem_address == 40)
+            lcd_handle->state.mem_address = 64;
     }
 
     esp_rom_delay_us(DELAY);
@@ -453,7 +480,10 @@ esp_err_t lcd_shift_cursor_r(lcd_handle_t lcd_handle)
     }
     else
     {
-        lcd_handle->state.mem_address %= sizeof(lcd_handle->state.ddram);
+        ++lcd_handle->state.mem_address;
+        lcd_handle->state.mem_address %= 104;
+        if (lcd_handle->state.mem_address == 40)
+            lcd_handle->state.mem_address = 64;
     }
 
     esp_rom_delay_us(DELAY);
@@ -475,8 +505,10 @@ esp_err_t lcd_shift_cursor_l(lcd_handle_t lcd_handle)
     }
     else
     {
-        if (lcd_handle->state.mem_address >= sizeof(lcd_handle->state.ddram))
-            lcd_handle->state.mem_address = 0;
+        if (lcd_handle->state.mem_address >= 104)
+            lcd_handle->state.mem_address = 103;
+        if (lcd_handle->state.mem_address == 63)
+            lcd_handle->state.mem_address = 39;
     }
 
     esp_rom_delay_us(DELAY);
