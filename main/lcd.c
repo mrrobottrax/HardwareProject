@@ -20,7 +20,7 @@ P7	            D7	            Data Bit 7
 // https://www.scribd.com/document/564283347/LCD-HD44780-instruction-set
 
 #define DELAY 50
-#define TIMEOUT 200
+#define TIMEOUT 1000
 
 typedef struct
 {
@@ -170,16 +170,20 @@ static esp_err_t lcd_get_to_correct_state(lcd_handle_t lcd_handle)
 {
     lcd_handle->is_device_correct_state = false;
 
-    // ESP_ERROR_CHECK(i2c_master_bus_reset(lcd_handle->i2c_bus_handle));
+    ESP_ERROR_CHECK(i2c_master_bus_reset(lcd_handle->i2c_bus_handle));
 
+    vTaskDelay(10);
+    
     printf("Getting LCD into state\n");
-
+    
     esp_err_t err;
     err = lcd_initialize(lcd_handle);
     if (err != ESP_OK)
-        return err;
-
+    return err;
+    
     printf("LCD Initialized\n");
+
+    vTaskDelay(10);
 
     // copy ddram
     err = lcd_send_8bit_control(lcd_handle, 0b10000000);

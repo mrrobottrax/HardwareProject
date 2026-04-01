@@ -1,12 +1,8 @@
 #include <inttypes.h>
 #include <esp_err.h>
+#include <driver/i2c_types.h>
 
-esp_err_t display_init();
-
-typedef struct
-{
-    uint8_t i2c_port;
-} display_task_params_t;
+esp_err_t display_init(i2c_port_num_t i2c_port);
 
 void display_task(void *pvParams);
 

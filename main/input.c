@@ -13,7 +13,7 @@
 const int ROW_PINS[] = {14, 32, 33, 26};
 const int COL_PINS[] = {27, 13, 25};
 
-void input_init()
+esp_err_t input_init()
 {
     for (int i = 0; i < NUM_ROWS; i++)
     {
@@ -28,6 +28,8 @@ void input_init()
         gpio_set_direction(COL_PINS[i], GPIO_MODE_INPUT);
         gpio_set_pull_mode(COL_PINS[i], GPIO_PULLUP_ONLY);
     }
+
+    return ESP_OK;
 }
 
 input_data_t input_read()

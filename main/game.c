@@ -2,9 +2,11 @@
 
 #include <string.h>
 #include <freertos/FreeRTOS.h>
+#include <math.h>
 
 #include "display.h"
 #include "input.h"
+#include "accelerometer.h"
 
 void game_logic_task(void *pvParams)
 {
@@ -78,6 +80,19 @@ void space_game_task(void *pvParams)
 
     while (1)
     {
+        int16_t x = 0, y = 0, z = 0;
+        accel_read(&x, &y, &z);
+
+        float fx = (float)x / (1 << 14);
+        float fy = (float)y / (1 << 14);
+        float fz = (float)z / (1 << 14) - 0.2f; // calibration
+
+        float mag = sqrtf(fx * fx + fy * fy + fz * fz);
+
+        float movement = fabsf(mag - 1);
+
+        printf("%f, %f: %f, %f, %f\n", movement, mag, fx, fy, fz);
+
         bool was_player_up = player_up;
         input_data_t input = input_read();
 

@@ -8,9 +8,10 @@
 
 #define QUEUE_SIZE 256
 
+static lcd_handle_t lcd_handle;
 static QueueHandle_t lcd_cmd_queue;
 
-esp_err_t display_init()
+esp_err_t display_init(i2c_port_num_t i2c_port)
 {
     lcd_cmd_queue = xQueueCreate(QUEUE_SIZE, sizeof(lcd_cmd_t));
     if (lcd_cmd_queue == NULL)
@@ -19,23 +20,26 @@ esp_err_t display_init()
         return ESP_FAIL;
     }
 
+    esp_err_t err = ESP_OK;
+
+    i2c_master_bus_handle_t bus_handle;
+    err = i2c_master_get_bus_handle(i2c_port, &bus_handle);
+    if (err != ESP_OK)
+        return err;
+
+    lcd_config_t lcd_config = {
+        .bus_handle = bus_handle,
+        .address = LCD_I2C_ID,
+    };
+    err = lcd_create(&lcd_config, &lcd_handle);
+    if (err != ESP_OK)
+        return err;
+
     return ESP_OK;
 }
 
 void display_task(void *pvParams)
 {
-    display_task_params_t params = *(display_task_params_t *)pvParams;
-
-    i2c_master_bus_handle_t bus_handle;
-    ESP_ERROR_CHECK(i2c_master_get_bus_handle(params.i2c_port, &bus_handle));
-
-    lcd_handle_t lcd_handle;
-    lcd_config_t lcd_config = {
-        .bus_handle = bus_handle,
-        .address = LCD_I2C_ID,
-    };
-    ESP_ERROR_CHECK(lcd_create(&lcd_config, &lcd_handle));
-
     lcd_cmd_t cmd;
     while (1)
     {
