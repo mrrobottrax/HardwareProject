@@ -18,6 +18,8 @@ void shake_game_task(void *pvParams)
 
     display_set_dd_address(64);
 
+    TickType_t lose_time = xTaskGetTickCount() + 5000 / portTICK_PERIOD_MS;
+
     TickType_t last_increase_time = xTaskGetTickCount();
     int progress = 0;
     while (true)
@@ -41,6 +43,11 @@ void shake_game_task(void *pvParams)
             audio_playfile(SOUND_FOLDER_SHAKE, SOUND_SHAKE_LOSS_TONES_START + progress);
 
             vTaskDelay(300 / portTICK_PERIOD_MS);
+
+            if (progress == 0 && xTaskGetTickCount() > lose_time)
+            {
+                lose_game();
+            }
         }
 
         float threshold = 0.6f;
