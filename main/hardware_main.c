@@ -9,6 +9,10 @@
 #include "accelerometer.h"
 #include "meta_logic.h"
 
+#include "space_game.h"
+#include "shake_game.h"
+#include "simon_game.h"
+
 #define I2C_PORT 0x00
 
 void app_main(void)
@@ -47,7 +51,11 @@ void app_main(void)
     if (xTaskCreatePinnedToCore(display_task, "Display Task", 4096, NULL, 1, &display_task_handle, 0) != pdPASS)
         ESP_ERROR_CHECK(ESP_FAIL);
 
+    // TaskHandle_t game_logic_task_handle;
+    // if (xTaskCreatePinnedToCore(meta_logic_task, "Meta Logic", 4096, NULL, 2, &game_logic_task_handle, 1) != pdPASS)
+    //     ESP_ERROR_CHECK(ESP_FAIL);
+
     TaskHandle_t game_logic_task_handle;
-    if (xTaskCreatePinnedToCore(meta_logic_task, "Meta Logic", 4096, NULL, 2, &game_logic_task_handle, 1) != pdPASS)
+    if (xTaskCreatePinnedToCore(shake_game_task, "Game Test", 4096, NULL, 2, &game_logic_task_handle, 1) != pdPASS)
         ESP_ERROR_CHECK(ESP_FAIL);
 }

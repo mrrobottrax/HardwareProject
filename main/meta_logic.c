@@ -8,10 +8,12 @@
 #include "sounds.h"
 
 #include "space_game.h"
+#include "shake_game.h"
+#include "simon_game.h"
 
 static int lives = 5;
 static int current_game = 0;
-static void (*games_list[])(void *) = {space_game_task};
+static void (*games_list[])(void *) = {space_game_task, shake_game_task, simon_game_task};
 
 static bool did_intro = false;
 

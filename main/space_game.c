@@ -239,6 +239,8 @@ void space_game_task(void *pvParams)
         if ((player_up && row0[2] == SPRITE_ASTEROID) ||
             (!player_up && row1[2] == SPRITE_ASTEROID))
         {
+            audio_playfile(SOUND_FOLDER_SPACE, SOUND_SPACE_CRASH);
+
             if (player_up)
             {
                 display_set_dd_address(2);
