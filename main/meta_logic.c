@@ -56,29 +56,6 @@ void meta_logic_task(void *pvParams)
         vTaskDelay(3000 / portTICK_PERIOD_MS);
     }
 
-    // lives update
-    for (int i = 0; i < 3; ++i)
-    {
-        audio_playfile(SOUND_FOLDER_META, SOUND_META_BEEP0);
-        display_clear();
-        if (lives > 1)
-        {
-            display_set_dd_address(0);
-            display_write_data('0' + lives);
-            display_write_string(" ATTEMPTS");
-            display_set_dd_address(64);
-            display_write_string("REMAIN");
-        }
-        else
-        {
-            display_set_dd_address(0);
-            display_write_string("LAST TRY");
-        }
-        vTaskDelay(500 / portTICK_PERIOD_MS);
-        display_clear();
-        vTaskDelay(500 / portTICK_PERIOD_MS);
-    }
-
     // check for death
     if (lives <= 0)
     {
@@ -125,6 +102,29 @@ void meta_logic_task(void *pvParams)
 
         vTaskDelay(5000 / portTICK_PERIOD_MS);
         esp_restart();
+    }
+
+    // lives update
+    for (int i = 0; i < 3; ++i)
+    {
+        audio_playfile(SOUND_FOLDER_META, SOUND_META_BEEP0);
+        display_clear();
+        if (lives > 1)
+        {
+            display_set_dd_address(0);
+            display_write_data('0' + lives);
+            display_write_string(" ATTEMPTS");
+            display_set_dd_address(64);
+            display_write_string("REMAIN");
+        }
+        else
+        {
+            display_set_dd_address(0);
+            display_write_string("LAST TRY");
+        }
+        vTaskDelay(500 / portTICK_PERIOD_MS);
+        display_clear();
+        vTaskDelay(500 / portTICK_PERIOD_MS);
     }
 
     // fake loading
