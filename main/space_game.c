@@ -175,13 +175,15 @@ void space_game_task(void *pvParams)
         // player move
         if (input.keypad[1])
         {
-            audio_playfile(SOUND_FOLDER_SPACE, SOUND_SPACE_UP);
+            if (!was_player_up)
+                audio_playfile(SOUND_FOLDER_SPACE, SOUND_SPACE_UP);
             player_up = true;
         }
 
         if (input.keypad[7] || input.keypad[10])
         {
-            audio_playfile(SOUND_FOLDER_SPACE, SOUND_SPACE_DOWN);
+            if (was_player_up)
+                audio_playfile(SOUND_FOLDER_SPACE, SOUND_SPACE_DOWN);
             player_up = false;
         }
 

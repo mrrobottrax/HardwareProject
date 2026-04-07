@@ -63,14 +63,14 @@ void simon_game_task(void *pvParams)
 
             display_set_dd_address(7);
             display_write_data(num_to_char(sequence[i]));
-            vTaskDelay(400 / portTICK_PERIOD_MS);
+            vTaskDelay(300 / portTICK_PERIOD_MS);
 
             // allow the player to see the first number for tutorialization
             if (current_sequence_number > 1)
             {
                 display_set_dd_address(7);
                 display_write_data(' ');
-                vTaskDelay(400 / portTICK_PERIOD_MS);
+                vTaskDelay(200 / portTICK_PERIOD_MS);
             }
         }
 
