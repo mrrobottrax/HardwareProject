@@ -111,8 +111,10 @@ void space_game_task(void *pvParams)
             continue;
         }
 
+        // check win
         if (xTaskGetTickCount() > win_time)
         {
+            vTaskDelay(500 / portTICK_PERIOD_MS);
             win_game();
         }
 
@@ -265,13 +267,6 @@ void space_game_task(void *pvParams)
 
             display_clear();
             display_set_dd_address(4);
-
-            const char string[] = "You Lose";
-
-            for (int i = 0; i < sizeof(string) - 1; ++i)
-                display_write_data(string[i]);
-
-            vTaskDelay(2000 / portTICK_PERIOD_MS);
 
             lose_game();
         }

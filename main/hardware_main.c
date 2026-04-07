@@ -12,6 +12,7 @@
 #include "space_game.h"
 #include "shake_game.h"
 #include "simon_game.h"
+#include "test_task.h"
 
 #define I2C_PORT 0x00
 
@@ -56,6 +57,6 @@ void app_main(void)
     //     ESP_ERROR_CHECK(ESP_FAIL);
 
     TaskHandle_t game_logic_task_handle;
-    if (xTaskCreatePinnedToCore(shake_game_task, "Game Test", 4096, NULL, 2, &game_logic_task_handle, 1) != pdPASS)
+    if (xTaskCreatePinnedToCore(simon_game_task, "Game Test", 4096, NULL, 2, &game_logic_task_handle, 1) != pdPASS)
         ESP_ERROR_CHECK(ESP_FAIL);
 }

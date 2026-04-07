@@ -37,25 +37,13 @@ void meta_logic_task(void *pvParams)
             vTaskDelay(1);
         }
 
-        audio_playfile(SOUND_FOLDER_META, SOUND_META_CONFIRM);
-
-        display_clear();
-        vTaskDelay(1000 / portTICK_PERIOD_MS);
-
-        for (int i = 3; i > 0; --i)
-        {
-            display_set_dd_address(0);
-            display_write_data('0' + i);
-            vTaskDelay(1000 / portTICK_PERIOD_MS);
-        }
-
         audio_playfile(SOUND_FOLDER_META, SOUND_META_ARMED);
 
         display_set_dd_address(0);
-        display_write_string("DEVICE HAS BEEN");
+        display_write_string("DEVICE HAS BEEN ");
         display_set_dd_address(64 + 5);
         display_write_string("ARMED");
-        vTaskDelay(3000 / portTICK_PERIOD_MS);
+        vTaskDelay(5000 / portTICK_PERIOD_MS);
     }
 
     // check for death
@@ -113,10 +101,10 @@ void meta_logic_task(void *pvParams)
         display_clear();
         if (lives > 1)
         {
-            display_set_dd_address(0);
+            display_set_dd_address(3);
             display_write_data('0' + lives);
             display_write_string(" ATTEMPTS");
-            display_set_dd_address(64);
+            display_set_dd_address(64 + 5);
             display_write_string("REMAIN");
         }
         else
@@ -172,10 +160,12 @@ void meta_logic_task(void *pvParams)
 
 void win_game()
 {
+    audio_playfile(SOUND_FOLDER_META, SOUND_META_GAME_WIN);
+
     display_clear();
-    display_set_dd_address(0);
+    display_set_dd_address(3);
     display_write_string("GAME WON!");
-    vTaskDelay(3000 / portTICK_PERIOD_MS);
+    vTaskDelay(2000 / portTICK_PERIOD_MS);
 
     ++current_game;
     TaskHandle_t game_logic_task_handle;
@@ -186,6 +176,13 @@ void win_game()
 
 void lose_game()
 {
+    audio_playfile(SOUND_FOLDER_META, SOUND_META_GAME_LOSE);
+
+    display_clear();
+    display_set_dd_address(3);
+    display_write_string("GAME LOST");
+    vTaskDelay(2000 / portTICK_PERIOD_MS);
+
     --lives;
     TaskHandle_t game_logic_task_handle;
     if (xTaskCreatePinnedToCore(meta_logic_task, "Meta Logic", 4096, NULL, 2, &game_logic_task_handle, 1) != pdPASS)
