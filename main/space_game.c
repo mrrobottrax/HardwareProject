@@ -86,15 +86,15 @@ void space_game_task(void *pvParams)
     display_set_dd_address(0);
     display_write_string("AVOID THE METEORS");
     display_set_dd_address(64);
-    display_write_string("LAST 1 MINUTE");
-    vTaskDelay(2000 / portTICK_PERIOD_MS);
+    display_write_string("LAST 30 SECONDS");
+    vTaskDelay(4000 / portTICK_PERIOD_MS);
 
     display_clear();
 
     const TickType_t tick_rate = pdMS_TO_TICKS(10);
     const TickType_t tick_ratio = 30;
     TickType_t last_wake_time = xTaskGetTickCount();
-    TickType_t win_time = xTaskGetTickCount() + pdMS_TO_TICKS(60 * 1000);
+    TickType_t win_time = xTaskGetTickCount() + pdMS_TO_TICKS(30 * 1000);
 
     TickType_t current_tick = 0;
     input_data_t input = {0};

@@ -155,6 +155,11 @@ void meta_logic_task(void *pvParams)
 
 void win_game()
 {
+    display_clear();
+    display_set_dd_address(0);
+    display_write_string("GAME WON!");
+    vTaskDelay(3000 / portTICK_PERIOD_MS);
+
     ++current_game;
     TaskHandle_t game_logic_task_handle;
     if (xTaskCreatePinnedToCore(meta_logic_task, "Meta Logic", 4096, NULL, 2, &game_logic_task_handle, 1) != pdPASS)
