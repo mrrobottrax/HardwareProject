@@ -52,11 +52,11 @@ void app_main(void)
     if (xTaskCreatePinnedToCore(display_task, "Display Task", 4096, NULL, 1, &display_task_handle, 0) != pdPASS)
         ESP_ERROR_CHECK(ESP_FAIL);
 
-    // TaskHandle_t game_logic_task_handle;
-    // if (xTaskCreatePinnedToCore(meta_logic_task, "Meta Logic", 4096, NULL, 2, &game_logic_task_handle, 1) != pdPASS)
-    //     ESP_ERROR_CHECK(ESP_FAIL);
-
     TaskHandle_t game_logic_task_handle;
-    if (xTaskCreatePinnedToCore(simon_game_task, "Game Test", 4096, NULL, 2, &game_logic_task_handle, 1) != pdPASS)
+    if (xTaskCreatePinnedToCore(meta_logic_task, "Meta Logic", 4096, NULL, 2, &game_logic_task_handle, 1) != pdPASS)
         ESP_ERROR_CHECK(ESP_FAIL);
+
+    // TaskHandle_t game_logic_task_handle;
+    // if (xTaskCreatePinnedToCore(simon_game_task, "Game Test", 4096, NULL, 2, &game_logic_task_handle, 1) != pdPASS)
+    //     ESP_ERROR_CHECK(ESP_FAIL);
 }
