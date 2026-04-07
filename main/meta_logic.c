@@ -82,7 +82,7 @@ void meta_logic_task(void *pvParams)
         display_clear();
         display_set_dd_address(1);
         display_write_string("DEVICE DEFUSED");
-        vTaskDelay(1000 / portTICK_PERIOD_MS);
+        vTaskDelay(5000 / portTICK_PERIOD_MS);
 
         audio_playfile(SOUND_FOLDER_META, SOUND_META_WIN);
 
@@ -90,7 +90,7 @@ void meta_logic_task(void *pvParams)
         display_set_dd_address(4);
         display_write_string("YOU WIN!");
 
-        vTaskDelay(5000 / portTICK_PERIOD_MS);
+        vTaskDelay(3000 / portTICK_PERIOD_MS);
         esp_restart();
     }
 
