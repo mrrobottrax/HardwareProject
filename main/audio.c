@@ -41,12 +41,16 @@ esp_err_t audio_playfile(uint8_t folder, uint8_t file)
         return ESP_FAIL;
     }
     uint8_t cmd_play[10] = {0x7E, 0xFF, 0x06, 0x0F, 0x00, folder, file, 0x00, 0x00, 0xEF};
-    uint16_t checksum = 0 - (0xFF + 0x06 + 0x0F + 0x00 + folder + file);
+
+    uint16_t sum = 0;
+    for (int i = 1; i < 7; i++)
+    {
+        sum += cmd_play[i];
+    }
+    uint16_t checksum = -sum;
 
     cmd_play[7] = (uint8_t)(checksum >> 8);
-    cmd_play[8] = (uint8_t)(checksum);
-
-    uart_write_bytes(UART_NUM_2, (const char *)cmd_play, sizeof(cmd_play));
+    cmd_play[8] = (uint8_t)(checksum & 0xFF);
 
     int bytes_written = uart_write_bytes(UART_NUM_2, (const char *)cmd_play, sizeof(cmd_play));
 

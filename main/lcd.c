@@ -107,8 +107,6 @@ static esp_err_t lcd_initialize(lcd_handle_t lcd_handle)
 {
     esp_err_t err = ESP_OK;
 
-    vTaskDelay(20 / portTICK_PERIOD_MS);
-
     err = lcd_send_4bit_control(lcd_handle, 0b0011);
     if (err != ESP_OK)
         return err;
@@ -170,9 +168,7 @@ static esp_err_t lcd_get_to_correct_state(lcd_handle_t lcd_handle)
 {
     lcd_handle->is_device_correct_state = false;
 
-    ESP_ERROR_CHECK(i2c_master_bus_reset(lcd_handle->i2c_bus_handle));
-
-    vTaskDelay(10);
+    //ESP_ERROR_CHECK(i2c_master_bus_reset(lcd_handle->i2c_bus_handle));
     
     printf("Getting LCD into state\n");
     
@@ -182,8 +178,6 @@ static esp_err_t lcd_get_to_correct_state(lcd_handle_t lcd_handle)
     return err;
     
     printf("LCD Initialized\n");
-
-    vTaskDelay(10);
 
     // copy ddram
     err = lcd_send_8bit_control(lcd_handle, 0b10000000);

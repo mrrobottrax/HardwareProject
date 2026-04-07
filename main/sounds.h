@@ -1,0 +1,25 @@
+enum
+{
+    SOUND_FOLDER_META = 1,
+    SOUND_FOLDER_SPACE = 2,
+    SOUND_FOLDER_SHAKE = 3,
+    SOUND_FOLDER_SIMON = 4,
+};
+
+enum
+{
+    SOUND_META_BEEP0 = 1,
+    SOUND_META_ARMED = 2,
+    SOUND_META_CONFIRM = 3,
+    SOUND_META_EXPLODE = 4,
+    SOUND_META_FAIL = 5,
+    SOUND_META_DEFUSE = 6,
+    SOUND_META_WIN = 7,
+};
+
+enum
+{
+    SOUND_SPACE_MENU = 1,
+    SOUND_SPACE_UP = 2,
+    SOUND_SPACE_DOWN = 3,
+};

@@ -6,13 +6,14 @@
 #include "display.h"
 #include "input.h"
 #include "accelerometer.h"
-
-void game_logic_task(void *pvParams)
-{
-}
+#include "audio.h"
+#include "sounds.h"
+#include "meta_logic.h"
 
 void space_game_task(void *pvParams)
 {
+    audio_playfile(SOUND_FOLDER_SPACE, SOUND_SPACE_MENU);
+
     display_clear();
 
     enum
@@ -74,13 +75,44 @@ void space_game_task(void *pvParams)
     memset(row0, ' ', 16);
     memset(row1, ' ', 16);
 
-    const TickType_t tick_rate = pdMS_TO_TICKS(300);
+    // intro instructions
+    display_set_dd_address(0);
+    display_write_string("2 = MOVE UP");
+    display_set_dd_address(64);
+    display_write_string("0 = MOVE DOWN");
+    vTaskDelay(2000 / portTICK_PERIOD_MS);
+
+    display_clear();
+    display_set_dd_address(0);
+    display_write_string("AVOID THE METEORS");
+    display_set_dd_address(64);
+    display_write_string("LAST 1 MINUTE");
+    vTaskDelay(2000 / portTICK_PERIOD_MS);
+
+    display_clear();
+
+    const TickType_t tick_rate = pdMS_TO_TICKS(10);
+    const TickType_t tick_ratio = 30;
     TickType_t last_wake_time = xTaskGetTickCount();
 
+    TickType_t current_tick = 0;
+    input_data_t input = {0};
     while (1)
     {
+        input_data_t input_currentframe = input_read();
+
+        for (int i = 0; i < 12; ++i)
+            input.keypad[i] |= input_currentframe.keypad[i];
+
+        if (current_tick++ != tick_ratio)
+        {
+            vTaskDelayUntil(&last_wake_time, tick_rate);
+            continue;
+        }
+
+        current_tick = 0;
+
         bool was_player_up = player_up;
-        input_data_t input = input_read();
 
         // copy screen
         uint8_t prev_row0[16];
@@ -135,11 +167,13 @@ void space_game_task(void *pvParams)
         // player move
         if (input.keypad[1])
         {
+            audio_playfile(SOUND_FOLDER_SPACE, SOUND_SPACE_UP);
             player_up = true;
         }
 
-        if (input.keypad[7])
+        if (input.keypad[7] || input.keypad[10])
         {
+            audio_playfile(SOUND_FOLDER_SPACE, SOUND_SPACE_DOWN);
             player_up = false;
         }
 
@@ -231,12 +265,11 @@ void space_game_task(void *pvParams)
 
             vTaskDelay(2000 / portTICK_PERIOD_MS);
 
-            TaskHandle_t game_logic_task_handle;
-            if (xTaskCreatePinnedToCore(space_game_task, "Game Logic", 4096, NULL, 2, &game_logic_task_handle, 1) != pdPASS)
-                ESP_ERROR_CHECK(ESP_FAIL);
-
-            vTaskDelete(NULL);
+            lose_game();
         }
+
+        for (int i = 0; i < 12; ++i)
+            input.keypad[i] = 0;
 
         vTaskDelayUntil(&last_wake_time, tick_rate);
     }

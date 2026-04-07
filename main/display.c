@@ -157,6 +157,21 @@ void display_write_data(uint8_t data)
     ESP_ERROR_CHECK(display_cmd(&cmd));
 }
 
+void display_write_string(const char *str)
+{
+    uint32_t i = 0;
+    while (i < 1000)
+    {
+        if (str[i] == '\0')
+            return;
+
+        display_write_data(str[i]);
+        ++i;
+    }
+
+    ESP_ERROR_CHECK(ESP_FAIL);
+}
+
 void display_shift_cursor_r()
 {
     lcd_cmd_t cmd = {

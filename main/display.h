@@ -48,6 +48,7 @@ void display_clear();
 void display_set_dd_address(uint8_t address);
 void display_set_cg_address(uint8_t address);
 void display_write_data(uint8_t byte);
+void display_write_string(const char *str);
 void display_shift_cursor_r();
 void display_shift_cursor_l();
 void display_shift_display_r();

@@ -7,12 +7,14 @@
 #include "input.h"
 #include "audio.h"
 #include "accelerometer.h"
-#include "space_game.h"
+#include "meta_logic.h"
 
 #define I2C_PORT 0x00
 
 void app_main(void)
 {
+    vTaskDelay(1000 / portTICK_PERIOD_MS);
+
     printf("Starting I2C on port %i\n", I2C_PORT);
 
     i2c_master_bus_config_t i2c_mst_config = {
@@ -20,7 +22,7 @@ void app_main(void)
         .i2c_port = I2C_PORT,
         .scl_io_num = 22,
         .sda_io_num = 21,
-        .glitch_ignore_cnt = 7,
+        .glitch_ignore_cnt = 3,
         .flags.enable_internal_pullup = false,
     };
     i2c_master_bus_handle_t bus_handle;
@@ -46,6 +48,6 @@ void app_main(void)
         ESP_ERROR_CHECK(ESP_FAIL);
 
     TaskHandle_t game_logic_task_handle;
-    if (xTaskCreatePinnedToCore(space_game_task, "Game Logic", 4096, NULL, 2, &game_logic_task_handle, 1) != pdPASS)
+    if (xTaskCreatePinnedToCore(meta_logic_task, "Meta Logic", 4096, NULL, 2, &game_logic_task_handle, 1) != pdPASS)
         ESP_ERROR_CHECK(ESP_FAIL);
 }
