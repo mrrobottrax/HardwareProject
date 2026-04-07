@@ -11,7 +11,7 @@
 #include "shake_game.h"
 #include "simon_game.h"
 
-static int lives = 5;
+static int lives = 3;
 static int current_game = 0;
 static void (*games_list[])(void *) = {space_game_task, shake_game_task, simon_game_task};
 
@@ -54,7 +54,7 @@ void meta_logic_task(void *pvParams)
         display_clear();
         display_set_dd_address(3);
         display_write_string("YOU FAILED");
-        vTaskDelay(1000 / portTICK_PERIOD_MS);
+        vTaskDelay(3000 / portTICK_PERIOD_MS);
 
         display_set_dd_address(0);
         display_write_string("DETONATION IN ");
@@ -64,7 +64,7 @@ void meta_logic_task(void *pvParams)
             audio_playfile(SOUND_FOLDER_META, SOUND_META_BEEP0);
             display_set_dd_address(14);
             display_write_data('0' + i);
-            vTaskDelay(500 / portTICK_PERIOD_MS);
+            vTaskDelay(1000 / portTICK_PERIOD_MS);
         }
 
         display_clear();
