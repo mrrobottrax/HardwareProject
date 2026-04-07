@@ -53,7 +53,7 @@ void meta_logic_task(void *pvParams)
 
         display_set_dd_address(0);
         display_write_string("DEVICE HAS BEEN");
-        display_set_dd_address(64);
+        display_set_dd_address(64 + 5);
         display_write_string("ARMED");
         vTaskDelay(3000 / portTICK_PERIOD_MS);
     }
@@ -64,7 +64,7 @@ void meta_logic_task(void *pvParams)
         audio_playfile(SOUND_FOLDER_META, SOUND_META_FAIL);
 
         display_clear();
-        display_set_dd_address(0);
+        display_set_dd_address(3);
         display_write_string("YOU FAILED");
         vTaskDelay(1000 / portTICK_PERIOD_MS);
 
@@ -92,14 +92,14 @@ void meta_logic_task(void *pvParams)
         audio_playfile(SOUND_FOLDER_META, SOUND_META_DEFUSE);
 
         display_clear();
-        display_set_dd_address(0);
+        display_set_dd_address(1);
         display_write_string("DEVICE DEFUSED");
         vTaskDelay(1000 / portTICK_PERIOD_MS);
 
         audio_playfile(SOUND_FOLDER_META, SOUND_META_WIN);
 
         display_clear();
-        display_set_dd_address(0);
+        display_set_dd_address(4);
         display_write_string("YOU WIN!");
 
         vTaskDelay(5000 / portTICK_PERIOD_MS);
@@ -121,12 +121,27 @@ void meta_logic_task(void *pvParams)
         }
         else
         {
-            display_set_dd_address(0);
+            display_set_dd_address(4);
             display_write_string("LAST TRY");
         }
         vTaskDelay(500 / portTICK_PERIOD_MS);
         display_clear();
         vTaskDelay(500 / portTICK_PERIOD_MS);
+    }
+
+    // final game
+    if (current_game >= sizeof(games_list) / sizeof(games_list[0]) - 1)
+    {
+        for (int i = 0; i < 3; ++i)
+        {
+            audio_playfile(SOUND_FOLDER_META, SOUND_META_BEEP1);
+            display_clear();
+            display_set_dd_address(3);
+            display_write_string("FINAL GAME");
+            vTaskDelay(500 / portTICK_PERIOD_MS);
+            display_clear();
+            vTaskDelay(500 / portTICK_PERIOD_MS);
+        }
     }
 
     // fake loading
