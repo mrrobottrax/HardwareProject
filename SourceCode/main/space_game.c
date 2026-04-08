@@ -111,8 +111,10 @@ void space_game_task(void *pvParams)
             continue;
         }
 
+        // check win
         if (xTaskGetTickCount() > win_time)
         {
+            vTaskDelay(500 / portTICK_PERIOD_MS);
             win_game();
         }
 
@@ -173,13 +175,15 @@ void space_game_task(void *pvParams)
         // player move
         if (input.keypad[1])
         {
-            audio_playfile(SOUND_FOLDER_SPACE, SOUND_SPACE_UP);
+            if (!was_player_up)
+                audio_playfile(SOUND_FOLDER_SPACE, SOUND_SPACE_UP);
             player_up = true;
         }
 
         if (input.keypad[7] || input.keypad[10])
         {
-            audio_playfile(SOUND_FOLDER_SPACE, SOUND_SPACE_DOWN);
+            if (was_player_up)
+                audio_playfile(SOUND_FOLDER_SPACE, SOUND_SPACE_DOWN);
             player_up = false;
         }
 
@@ -239,6 +243,8 @@ void space_game_task(void *pvParams)
         if ((player_up && row0[2] == SPRITE_ASTEROID) ||
             (!player_up && row1[2] == SPRITE_ASTEROID))
         {
+            audio_playfile(SOUND_FOLDER_SPACE, SOUND_SPACE_CRASH);
+
             if (player_up)
             {
                 display_set_dd_address(2);
@@ -263,13 +269,6 @@ void space_game_task(void *pvParams)
 
             display_clear();
             display_set_dd_address(4);
-
-            const char string[] = "You Lose";
-
-            for (int i = 0; i < sizeof(string) - 1; ++i)
-                display_write_data(string[i]);
-
-            vTaskDelay(2000 / portTICK_PERIOD_MS);
 
             lose_game();
         }
